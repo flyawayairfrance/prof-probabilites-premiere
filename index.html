@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prof Probabilités - Première Spé Maths</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --surface: #1a1d23;
+      --primary: #4f8cff;
+      --accent: #7c5cff;
+      --success: #3dd68c;
+      --warning: #ffb020;
+      --text: #e8eaed;
+      --muted: #9aa0a6;
+      --border: #2d3139;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    header {
+      background: linear-gradient(135deg, #1a1d23 0%, #252a33 100%);
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p { color: var(--muted); font-size: 0.9rem; margin-top: 0.25rem; }
+    .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .progress-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin: 1rem 0;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--success));
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+    nav.chapters {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    nav.chapters button {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    nav.chapters button.active, nav.chapters button:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+    .chapter { display: none; }
+    .chapter.active { display: block; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card h2 { font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary); }
+    .card h3 { font-size: 1.05rem; margin: 1.2rem 0 0.5rem; }
+    .formula {
+      background: #12151a;
+      padding: 0.8rem 1rem;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      margin: 0.8rem 0;
+      border-left: 3px solid var(--primary);
+    }
+    textarea, input[type="text"], input[type="number"] {
+      width: 100%;
+      background: #12151a;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.8rem;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 1rem;
+      margin: 0.5rem 0;
+    }
+    textarea { min-height: 120px; resize: vertical; }
+    button.action {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.7rem 1.4rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      margin-top: 0.5rem;
+      margin-right: 0.5rem;
+      transition: transform 0.1s, background 0.2s;
+    }
+    button.action:hover { background: #3a7aef; transform: translateY(-1px); }
+    button.action.secondary { background: var(--surface); border: 1px solid var(--border); }
+    .feedback {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      background: #12151a;
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+    }
+    .feedback.correct { border-color: var(--success); }
+    .feedback.partial { border-color: var(--warning); }
+    .feedback.wrong { border-color: #ff6b6b; }
+    .qcm-options { display: flex; flex-direction: column; gap: 0.5rem; margin: 0.8rem 0; }
+    .qcm-options label {
+      background: #12151a;
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .qcm-options label:hover, .qcm-options input:checked + span { border-color: var(--primary); }
+    .score-display { text-align: right; color: var(--muted); font-size: 0.85rem; }
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+      margin-top: 3rem;
+    }
+    .tip { color: var(--warning); font-size: 0.9rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Prof Probabilités — Première Spé Maths</h1>
+    <p>Ton professeur interactif. Écris, raisonne, je corrige et t’aide à progresser.</p>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </header>
+
+  <div class="container">
+    <nav class="chapters" id="nav">
+      <button data-chap="1" class="active">1. Bases</button>
+      <button data-chap="2">2. Conditionnelles</button>
+      <button data-chap="3">3. Arbres & Totales</button>
+      <button data-chap="4">4. Indépendance</button>
+      <button data-chap="5">5. Variables aléatoires</button>
+    </nav>
+
+    <!-- CHAPITRE 1 -->
+    <section class="chapter active" id="chap1">
+      <div class="card">
+        <h2>Chapitre 1 — Événements et probabilités</h2>
+        <p>Univers Ω, événements, équiprobabilité, opérations (union, intersection, contraire).</p>
+        <div class="formula">P(A) = nombre de cas favorables / nombre de cas possibles (équiprobabilité)</div>
+        <div class="formula">P(A ∪ B) = P(A) + P(B) − P(A ∩ B)</div>
+        <div class="formula">P(Ā) = 1 − P(A)</div>
+      </div>
+
+      <div class="card" data-exo="1-1">
+        <h3>Exercice 1 — Calcul simple</h3>
+        <p>On lance un dé équilibré à 6 faces. Quelle est la probabilité d’obtenir un nombre pair ?</p>
+        <input type="number" step="0.01" placeholder="Réponse (ex: 0.5)" id="ans11">
+        <button class="action" onclick="checkNumber(1.1, 0.5, '1/2 ou 0.5')">Vérifier</button>
+        <div class="feedback" id="fb11"></div>
+      </div>
+
+      <div class="card" data-exo="1-2">
+        <h3>Exercice 2 — Rédaction</h3>
+        <p>Explique avec tes mots pourquoi, dans une situation d’équiprobabilité, on peut utiliser le rapport « cas favorables / cas possibles ». Donne un exemple.</p>
+        <textarea id="ans12" placeholder="Écris ta réponse ici..."></textarea>
+        <button class="action" onclick="analyzeRedaction(1.2, ['équiprobabilité', 'même chance', 'favorable', 'total', 'exemple'])">Analyser mon travail</button>
+        <button class="action secondary" onclick="showHint(1.2)">Indice</button>
+        <div class="feedback" id="fb12"></div>
+      </div>
+    </section>
+
+    <!-- CHAPITRE 2 -->
+    <section class="chapter" id="chap2">
+      <div class="card">
+        <h2>Chapitre 2 — Probabilités conditionnelles</h2>
+        <p>P<sub>B</sub>(A) = probabilité de A sachant que B est réalisé.</p>
+        <div class="formula">P<sub>B</sub>(A) = P(A ∩ B) / P(B) &nbsp;&nbsp;(si P(B) > 0)</div>
+        <div class="formula">P(A ∩ B) = P(B) × P<sub>B</sub>(A) = P(A) × P<sub>A</sub>(B)</div>
+        <p class="tip">Piège classique : confondre P(A ∩ B) et P<sub>B</sub>(A).</p>
+      </div>
+
+      <div class="card">
+        <h3>Exercice — Conditionnelle</h3>
+        <p>Dans une classe, 60 % des élèves font du sport. Parmi ceux qui font du sport, 40 % font aussi de la musique. Quelle est la probabilité qu’un élève choisi au hasard fasse à la fois du sport et de la musique ?</p>
+        <input type="number" step="0.01" placeholder="Réponse décimale" id="ans21">
+        <button class="action" onclick="checkNumber(2.1, 0.24, '0.24 ou 24 %')">Vérifier</button>
+        <div class="feedback" id="fb21"></div>
+      </div>
+
+      <div class="card">
+        <h3>Rédaction — Expliquer la conditionnelle</h3>
+        <p>Pourquoi multiplie-t-on P(B) par P<sub>B</sub>(A) pour obtenir P(A ∩ B) ? Explique le sens de cette formule.</p>
+        <textarea id="ans22"></textarea>
+        <button class="action" onclick="analyzeRedaction(2.2, ['sachant', 'conditionnelle', 'intersection', 'restreindre', 'univers', 'proportion'])">Analyser</button>
+        <div class="feedback" id="fb22"></div>
+      </div>
+    </section>
+
+    <!-- CHAPITRE 3 -->
+    <section class="chapter" id="chap3">
+      <div class="card">
+        <h2>Chapitre 3 — Arbres pondérés & Probabilités totales</h2>
+        <p>Règles de l’arbre :</p>
+        <ul>
+          <li>Somme des probabilités issues d’un même nœud = 1</li>
+          <li>Probabilité d’un chemin = produit des branches</li>
+          <li>Pour un événement final, on additionne les chemins qui y mènent</li>
+        </ul>
+        <div class="formula">P(B) = P(A) × P<sub>A</sub>(B) + P(Ā) × P<sub>Ā</sub>(B)</div>
+        <p>Toujours dessiner l’arbre, même si ce n’est pas demandé.</p>
+      </div>
+
+      <div class="card">
+        <h3>Exercice — Probabilités totales</h3>
+        <p>Une usine a deux machines. La machine A produit 70 % des pièces, avec 2 % de défauts. La machine B produit 30 % des pièces, avec 5 % de défauts. Quelle est la probabilité qu’une pièce tirée au hasard soit défectueuse ?</p>
+        <input type="number" step="0.001" placeholder="Réponse" id="ans31">
+        <button class="action" onclick="checkNumber(3.1, 0.029, '0.029 ou 2,9 %')">Vérifier</button>
+        <div class="feedback" id="fb31"></div>
+      </div>
+
+      <div class="card">
+        <h3>Rédaction complète</h3>
+        <p>Rédige la solution de l’exercice précédent en nommant les événements, en écrivant la formule des probabilités totales et en justifiant chaque étape.</p>
+        <textarea id="ans32" placeholder="Nomme les événements A, B, D..."></textarea>
+        <button class="action" onclick="analyzeRedaction(3.2, ['A', 'B', 'D', 'probabilités totales', 'arbre', '0,7', '0,02', '0,3', '0,05', 'somme'])">Analyser ma rédaction</button>
+        <button class="action secondary" onclick="showModel(3.2)">Voir modèle</button>
+        <div class="feedback" id="fb32"></div>
+      </div>
+    </section>
+
+    <!-- CHAPITRE 4 -->
+    <section class="chapter" id="chap4">
+      <div class="card">
+        <h2>Chapitre 4 — Indépendance</h2>
+        <div class="formula">A et B indépendants ⇔ P(A ∩ B) = P(A) × P(B)</div>
+        <div class="formula">Équivalent : P<sub>B</sub>(A) = P(A) (si P(B) > 0)</div>
+        <p>Attention : indépendance ≠ incompatibilité (A ∩ B = ∅).</p>
+      </div>
+
+      <div class="card">
+        <h3>Vérifier l’indépendance</h3>
+        <p>P(A) = 0,4 ; P(B) = 0,5 ; P(A ∩ B) = 0,2. Les événements A et B sont-ils indépendants ? Justifie.</p>
+        <textarea id="ans41"></textarea>
+        <button class="action" onclick="analyzeRedaction(4.1, ['0,4', '0,5', '0,2', 'produit', '0,2', 'indépendant', 'égal'])">Analyser</button>
+        <div class="feedback" id="fb41"></div>
+      </div>
+    </section>
+
+    <!-- CHAPITRE 5 -->
+    <section class="chapter" id="chap5">
+      <div class="card">
+        <h2>Chapitre 5 — Variables aléatoires</h2>
+        <p>Loi de probabilité, espérance, variance, écart-type.</p>
+        <div class="formula">E(X) = Σ x<sub>i</sub> × P(X = x<sub>i</sub>)</div>
+        <div class="formula">V(X) = E(X²) − [E(X)]²</div>
+        <div class="formula">σ(X) = √V(X)</div>
+      </div>
+
+      <div class="card">
+        <h3>Calcul d’espérance</h3>
+        <p>Une variable aléatoire X prend les valeurs 0, 1 et 2 avec les probabilités respectives 0,3 ; 0,5 et 0,2. Calcule E(X).</p>
+        <input type="number" step="0.1" id="ans51">
+        <button class="action" onclick="checkNumber(5.1, 0.9, '0,9')">Vérifier</button>
+        <div class="feedback" id="fb51"></div>
+      </div>
+
+      <div class="card">
+        <h3>Rédaction — Variance</h3>
+        <p>Explique pourquoi on utilise la formule V(X) = E(X²) − [E(X)]² plutôt que de calculer directement les écarts au carré. Donne l’avantage de cette formule.</p>
+        <textarea id="ans52"></textarea>
+        <button class="action" onclick="analyzeRedaction(5.2, ['calcul', 'simple', 'E(X²)', 'moyenne', 'écart', 'pratique'])">Analyser</button>
+        <div class="feedback" id="fb52"></div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    Prof interactif Première Spé Maths — Probabilités<br>
+    Écris, je corrige, tu progresses. Ton travail est analysé en temps réel.
+  </footer>
+
+  <script>
+    // Navigation
+    document.querySelectorAll('#nav button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#nav button').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.chapter').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('chap' + btn.dataset.chap).classList.add('active');
+      });
+    });
+
+    // Progress (simple localStorage)
+    let completed = JSON.parse(localStorage.getItem('profProba') || '{}');
+    function updateProgress() {
+      const total = 8;
+      const done = Object.keys(completed).length;
+      document.getElementById('progressFill').style.width = (done / total * 100) + '%';
+    }
+    updateProgress();
+
+    function checkNumber(id, expected, display) {
+      const input = document.getElementById('ans' + id.toString().replace('.', ''));
+      const fb = document.getElementById('fb' + id.toString().replace('.', ''));
+      const val = parseFloat(input.value);
+      if (isNaN(val)) {
+        fb.className = 'feedback wrong';
+        fb.textContent = 'Entre un nombre valide.';
+        return;
+      }
+      if (Math.abs(val - expected) < 0.01) {
+        fb.className = 'feedback correct';
+        fb.textContent = `Correct ! ${display}\n\nBien joué. Tu peux passer à la suite.`;
+        completed[id] = true;
+      } else {
+        fb.className = 'feedback partial';
+        fb.textContent = `Pas tout à fait. La réponse attendue est ${display}.\n\nVérifie ton calcul. Si tu veux, redemande une aide.`;
+      }
+      localStorage.setItem('profProba', JSON.stringify(completed));
+      updateProgress();
+    }
+
+    function analyzeRedaction(id, keywords) {
+      const text = document.getElementById('ans' + id.toString().replace('.', '')).value.toLowerCase();
+      const fb = document.getElementById('fb' + id.toString().replace('.', ''));
+      if (text.trim().length < 30) {
+        fb.className = 'feedback wrong';
+        fb.textContent = 'Réponse trop courte. Développe ton raisonnement (au moins quelques phrases).';
+        return;
+      }
+      let score = 0;
+      let found = [];
+      keywords.forEach(k => {
+        if (text.includes(k.toLowerCase())) { score++; found.push(k); }
+      });
+      const ratio = score / keywords.length;
+      let msg = '';
+      if (ratio >= 0.7) {
+        fb.className = 'feedback correct';
+        msg = 'Excellente rédaction ! Tu as bien couvert les points clés.\n\n';
+        completed[id] = true;
+      } else if (ratio >= 0.4) {
+        fb.className = 'feedback partial';
+        msg = 'Bon début, mais il manque des éléments importants.\n\n';
+      } else {
+        fb.className = 'feedback wrong';
+        msg = 'La rédaction est incomplète. Revois le cours et les mots-clés essentiels.\n\n';
+      }
+      msg += `Éléments détectés : ${found.join(', ') || 'aucun'}\n`;
+      msg += `Conseil : assure-toi de nommer les événements clairement et de justifier chaque calcul.`;
+      fb.textContent = msg;
+      localStorage.setItem('profProba', JSON.stringify(completed));
+      updateProgress();
+    }
+
+    function showHint(id) {
+      const fb = document.getElementById('fb' + id.toString().replace('.', ''));
+      fb.className = 'feedback';
+      fb.textContent = 'Indice : pense à la définition de l’équiprobabilité et à un exemple simple (dé, pièce, cartes...).';
+    }
+
+    function showModel(id) {
+      const models = {
+        3.2: `Solution modèle :\n\nSoient A : « pièce produite par la machine A », B : « pièce produite par la machine B », D : « pièce défectueuse ».\n\nOn a P(A) = 0,7 ; P(B) = 0,3 ; P_A(D) = 0,02 ; P_B(D) = 0,05.\n\nA et B forment une partition de l’univers.\n\nPar la formule des probabilités totales :\nP(D) = P(A) × P_A(D) + P(B) × P_B(D)\n     = 0,7 × 0,02 + 0,3 × 0,05\n     = 0,014 + 0,015\n     = 0,029\n\nLa probabilité qu’une pièce soit défectueuse est donc 0,029 (soit 2,9 %).`
+      };
+      const fb = document.getElementById('fb' + id.toString().replace('.', ''));
+      fb.className = 'feedback';
+      fb.textContent = models[id] || 'Modèle non disponible.';
+    }
+  </script>
+</body>
+</html>
